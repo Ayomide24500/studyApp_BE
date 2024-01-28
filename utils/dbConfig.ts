@@ -1,6 +1,6 @@
 import { connect } from "mongoose";
 
-const URL: string = "mongodb://localhost:27017/study";
+const URL: string = process.env.DATABASE_URL!;
 
 export const dbConfig = async () => {
   try {

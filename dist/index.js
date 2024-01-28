@@ -10,7 +10,13 @@ const dbConfig_1 = require("./utils/dbConfig");
 const port = parseInt(process.env.PORT);
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
-app.use((0, cors_1.default)());
+const corsOptions = {
+    origin: "http://localhost:5173",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+    optionsSuccessStatus: 204,
+};
+app.use((0, cors_1.default)(corsOptions));
 (0, mainApp_1.mainApp)(app);
 const server = app.listen(2300, () => {
     console.log("server is up and running");

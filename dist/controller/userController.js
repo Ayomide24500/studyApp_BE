@@ -19,25 +19,25 @@ const userModel_1 = __importDefault(require("../model/userModel"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const createStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password } = req.body;
+        const { email, password, userName } = req.body;
         const salt = yield bcrypt_1.default.genSalt(5);
-        const hashedpassword = bcrypt_1.default.hash(password, salt);
+        const hashedpassword = yield bcrypt_1.default.hash(password, salt);
         const token = crypto_1.default.randomBytes(3).toString("hex");
-        const enrollmentID = crypto_1.default.randomBytes(4).toString("hex");
         const user = yield userModel_1.default.create({
             email,
+            userName,
             password: hashedpassword,
             token,
-            enrollmentID,
         });
         return res.status(200).json({
-            message: "student created successfully",
+            message: "Student created successfully",
             data: user,
         });
     }
     catch (error) {
+        console.log(error);
         return res.status(404).json({
-            message: "Error creating student  ",
+            message: "Error creating student",
         });
     }
 });
@@ -48,6 +48,7 @@ const VerifyStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const user = yield userModel_1.default.findById(studentID);
         if (user) {
             const updatedUser = yield userModel_1.default.findByIdAndUpdate(studentID, {
+                token: "",
                 verify: true,
             }, { new: true });
             return res.status(200).json({
@@ -79,7 +80,7 @@ const loginStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     expiresIn: "2d",
                 });
                 return res.status(201).json({
-                    msg: "User verified",
+                    msg: "User verified and can login now",
                     status: 201,
                     data: encrypted,
                 });

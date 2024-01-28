@@ -5,7 +5,6 @@ const mongoose_2 = require("mongoose");
 const UserModel = new mongoose_2.Schema({
     userName: {
         type: String,
-        unique: true,
     },
     email: {
         type: String,
@@ -14,10 +13,16 @@ const UserModel = new mongoose_2.Schema({
     password: {
         type: String,
     },
+    verify: {
+        type: Boolean,
+    },
     token: {
         type: String,
     },
-    study: [
+    studyPoint: {
+        type: String,
+    },
+    studyHistory: [
         {
             type: mongoose_1.Types.ObjectId,
             ref: "StudyDetails",
@@ -30,4 +35,4 @@ const UserModel = new mongoose_2.Schema({
         },
     ],
 }, { timestamps: true });
-exports.default = (0, mongoose_2.model)("StudentDetails", UserModel);
+exports.default = (0, mongoose_2.model)("studentdetails", UserModel);

@@ -8,14 +8,33 @@ const StudyModel = new mongoose_1.Schema({
     startingTime: {
         type: String,
     },
-    endingTime: {
-        type: String,
+    endStudy: {
+        type: Boolean,
+        default: false,
     },
     breakTime: {
         type: String,
     },
-    Notes: {
+    studyPoint: {
         type: String,
     },
+    breakDuration: {
+        type: String,
+    },
+    studyDuration: {
+        type: String,
+    },
+    studyHistory: [
+        {
+            type: mongoose_1.Types.ObjectId,
+            ref: "studyHistory",
+        },
+    ],
+    student: [
+        {
+            type: mongoose_1.Types.ObjectId,
+            ref: "student",
+        },
+    ],
 }, { timestamps: true });
 exports.default = (0, mongoose_1.model)("StudyDetails", StudyModel);
