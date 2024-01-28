@@ -8,44 +8,44 @@ import { Types } from "mongoose";
 
 export const createStudy = async (req: Request, res: Response) => {
   try {
-    const { breakDuration, breakTime, studyDuration } = req.body;
     const { studentID } = req.params;
+    const { studyDuration, breakDuration, breakTime } = req.body;
 
-    const Student = await UserModel.findById(studentID);
+    const hourConvertOfDuration = +studyDuration * 60;
 
-    if (!Student) {
+    const numberOfBreaks = hourConvertOfDuration / +breakTime;
+
+    const totalStudyTime =
+      hourConvertOfDuration + numberOfBreaks * breakDuration;
+
+    const user = await UserModel.findById(studentID);
+
+    if (!user) {
       return res.status(404).json({
-        msg: "User not found",
-        status: 404,
+        message: "student not found",
       });
     }
+    const getMinutes = new Date().setMinutes(totalStudyTime);
 
-    const hourDuration = +studyDuration * 60;
-
-    const breakNumber = hourDuration / (breakDuration + breakTime);
-    const studyTime = hourDuration + breakNumber * breakDuration;
-
-    const getMinutes = new Date().setMinutes(studyTime);
-    const cronfor = moment(getMinutes).format("h:mm:ss a");
+    const forCron = moment(getMinutes).format("h:mm:ss a");
 
     const study = await StudyModel.create({
-      studyTime: `${studyTime} minutes`,
-      breakDuration: ` ${breakDuration} minutes`,
+      totalTime: `${totalStudyTime} minutes`,
+      breakDuration: `${breakDuration} minutes`,
       studyDuration: `${studyDuration} hours`,
     });
 
-    const cron: any = new CronJob(
-      `${cronfor.split(":")[1]} ${cronfor.split(":")[0]} * * *`,
+    const cron = new CronJob(
+      `${forCron.split(":")[1]} ${forCron.split(":")[0]} * * * `,
       async function () {
-        console.log("Start Break");
         await StudyModel.findByIdAndUpdate(
-          study._id,
-          { endStudy: true, studyPoint: +studyDuration },
+          study?._id,
+          { endTime: true, studyPoint: +studyDuration },
           { new: true }
         );
 
-        Student!.studyPoint! = Student?.studyPoint + +studyDuration;
-        Student?.save();
+        user!.studyPoint! = user?.studyPoint! + +studyDuration;
+        user?.save();
 
         console.log("true");
 
@@ -56,9 +56,8 @@ export const createStudy = async (req: Request, res: Response) => {
       "America/Los_Angeles"
     );
 
-    console.log("study._id:", study._id);
-    Student?.studyHistory!.push(study._id);
-    Student?.save();
+    user?.studyHistory.push(new Types.ObjectId(study._id));
+    user?.save();
 
     cron.start();
 
@@ -107,9 +106,9 @@ export const AddSubjectLearnt = async (req: Request, res: Response) => {
 
 export const addStudentPoint = async (req: Request, res: Response) => {
   try {
-    const { userID } = req.params;
+    const { studentID } = req.params;
 
-    const user = await UserModel.findById(userID).populate({
+    const user = await UserModel.findById(studentID).populate({
       path: "studyHistory",
     });
 
@@ -121,7 +120,7 @@ export const addStudentPoint = async (req: Request, res: Response) => {
 
     if (user) {
       const update = await UserModel.findByIdAndUpdate(
-        userID,
+        studentID,
         { studentPoints: points },
         { new: true }
       );
@@ -133,7 +132,7 @@ export const addStudentPoint = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
     return res.status(404).json({
-      msg: "Error creating study",
+      msg: "Error adding points",
       status: 404,
     });
   }
@@ -166,7 +165,46 @@ export const getTopFive = async (req: Request, res: Response) => {
   }
 };
 
-export const getStudy = async () => {
+export const viewStudyById = async (req: Request, res: Response) => {
   try {
-  } catch (error) {}
+    const { studyID } = req.params;
+
+    const study = await StudyModel.findById(studyID);
+
+    return res.status(200).json({
+      msg: "study gotten",
+      data: study,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      msg: "Error creating study",
+      status: 404,
+    });
+  }
+};
+
+export const updateEndTime = async (req: Request, res: Response) => {
+  try {
+    const { studyID } = req.params;
+
+    const studyDuration = await StudyModel.findById(studyID);
+
+    const study = await StudyModel.findByIdAndUpdate(
+      studyID,
+      { endStudy: true, studyPoint: +studyDuration?.studyDuration! },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      msg: "Time elapsed",
+      data: study,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({
+      msg: "Error creating study",
+      status: 404,
+    });
+  }
 };
